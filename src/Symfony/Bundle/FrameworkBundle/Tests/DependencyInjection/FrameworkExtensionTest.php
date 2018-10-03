@@ -15,6 +15,7 @@ use Doctrine\Common\Annotations\Annotation;
 use Psr\Log\LoggerAwareInterface;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler\AddAnnotationsCachedReaderPass;
 use Symfony\Bundle\FrameworkBundle\DependencyInjection\FrameworkExtension;
+use Symfony\Bundle\FrameworkBundle\EventListener\KernelEventListenerInterface;
 use Symfony\Bundle\FrameworkBundle\Tests\TestCase;
 use Symfony\Bundle\FullStack;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
@@ -1237,6 +1238,21 @@ abstract class FrameworkExtensionTest extends TestCase
 
         $expected = array('session', 'initialized_session', 'session_storage', 'request_stack');
         $this->assertEquals($expected, array_keys($container->getDefinition('session_listener')->getArgument(0)->getValues()));
+    }
+
+    public function testKernelEventListenerInterfaceRegistration()
+    {
+        $container = $this->createContainerFromFile('full', array(), true, false);
+        $container->addCompilerPass(new ResolveInstanceofConditionalsPass());
+        $container->register('foo', KernelEventListenerInterface::class)
+            ->setAutoconfigured(true);
+        $container->compile();
+        $expectedTag = 'kernel.auto_configured_event_listener';
+
+        $this->assertTrue(
+            $container->findDefinition('foo')->hasTag($expectedTag),
+            "Definition should have tag \"$expectedTag\"."
+        );
     }
 
     protected function createContainer(array $data = array())

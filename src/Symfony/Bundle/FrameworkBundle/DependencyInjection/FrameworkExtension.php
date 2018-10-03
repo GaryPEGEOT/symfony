@@ -20,6 +20,7 @@ use Symfony\Bridge\Monolog\Processor\DebugProcessor;
 use Symfony\Bridge\Monolog\Processor\ProcessorInterface;
 use Symfony\Bridge\Twig\Extension\CsrfExtension;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\FrameworkBundle\EventListener\KernelEventListenerInterface;
 use Symfony\Bundle\FrameworkBundle\Routing\AnnotatedRouteControllerLoader;
 use Symfony\Bundle\FullStack;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
@@ -368,6 +369,8 @@ class FrameworkExtension extends Extension
             ->addTag('messenger.transport_factory');
         $container->registerForAutoconfiguration(LoggerAwareInterface::class)
             ->addMethodCall('setLogger', array(new Reference('logger')));
+        $container->registerForAutoconfiguration(KernelEventListenerInterface::class)
+            ->addTag('kernel.auto_configured_event_listener');
 
         if (!$container->getParameter('kernel.debug')) {
             // remove tagged iterator argument for resource checkers
